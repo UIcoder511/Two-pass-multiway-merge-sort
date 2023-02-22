@@ -101,9 +101,10 @@ public class SublistCreationPhaseOne {
             System.out.println("Records in  R1 : " + recordCountForR1);
             System.out.println("Number of subLists for R1 : " + numberOfSublistsForR1);
             System.out.println("Number of Blocks for R1 : " + blockCount1);
-            System.out.println("Total Time for reading Blocks for R1 : " + spo.readTime);
-            System.out.println("Total Time for sorting Blocks for R1 : " + spo.sortTime);
-            System.out.println("Total Time for writing Blocks for R1 : " + spo.writeTime);
+            System.out.println("Total Time for reading Blocks for R1 : " + spo.readTime + " ms");
+            System.out.println("Total Time for sorting Blocks for R1 : " + spo.sortTime + " ms");
+            System.out.println("Total Time for writing Blocks for R1 : " + spo.writeTime + " ms");
+            System.out.println("Block transfer time (t) for R1 : " + spo.readTime + " ms");
             System.out.println("Total Time for R1 : " + spo.totalTime);
             phase1Time += spo.totalTime;
 //            //transfer the content of buffer to buffer1 to avoid overwriting by second file subLists.
@@ -124,16 +125,17 @@ public class SublistCreationPhaseOne {
             System.out.println("Records in  R2 : " + recordCountForR2);
             System.out.println("Number of subLists for R2 : " + (spo.no_of_subLists - numberOfSublistsForR1));
             System.out.println("Number of Blocks for R2 : " + blockCount2);
-            System.out.println("Total Time for reading Blocks for R2 : " + spo.readTime);
-            System.out.println("Total Time for sorting Blocks for R2 : " + spo.sortTime);
-            System.out.println("Total Time for writing Blocks for R2 : " + spo.writeTime);
+            System.out.println("Total Time for reading Blocks for R2 : " + spo.readTime + " ms");
+            System.out.println("Total Time for sorting Blocks for R2 : " + spo.sortTime + " ms");
+            System.out.println("Total Time for writing Blocks for R2 : " + spo.writeTime + " ms");
+            System.out.println("Block transfer time (t) for R2 : " + spo.readTime + " ms");
             System.out.println("Total Time for R2 : " + spo.totalTime);
             phase1Time += spo.totalTime;
 
             System.out.println("Total number of records in R1 and R2: " + spo.total_records);
             System.out.println("Total Number of sublist " + spo.no_of_subLists);
 
-            int diskIOPhaseOne = 2 * (blockCount1 + blockCount2);
+            int diskIOPhaseOne = 2 * (blockCount1 + blockCount2) / Constants.MAIN_MEMORY;
             System.out.println("Total number of disk I/Os in phase1:  " + diskIOPhaseOne);
             System.out.println("Time take to sort relation R1 and R2 is " + phase1Time + "ms" + "(" + "~approx " + phase1Time / 1000.0 + "sec)");
 
@@ -158,15 +160,16 @@ public class SublistCreationPhaseOne {
 
             List<Path> subLists = getFilesListFromDirectory.getFilesList(buffer.getPath()); //get file list from buffer folder
 
-            //writeFinalResultsI(subLists.get(0));
+            writeFinalResultsI(subLists.get(0));
 
-
-            System.out.println("Phase 2 Time : " + mergeSortPhaseTwo.mergeTime + "ms" + " ("
-                    + mergeSortPhaseTwo.mergeTime / 1000.0 + " sec)");
 
             int diskIOForPhaseTwo = mergeSortPhaseTwo.readCount + mergeSortPhaseTwo.writeCount;
+            System.out.println("Total Time for reading Blocks  : " + mergeSortPhaseTwo.readTime + "ms");
+            System.out.println("Total Time for writing Blocks  : " + mergeSortPhaseTwo.writeTime + "ms");
+            System.out.println("Phase 2 Time : " + (mergeSortPhaseTwo.readTime + mergeSortPhaseTwo.writeTime) + "ms" + " ("
+                    + (mergeSortPhaseTwo.readTime + mergeSortPhaseTwo.writeTime) / 1000.0 + " sec)");
             System.out.println("Merge Phase Disk I/Os :" + diskIOForPhaseTwo);
-
+            System.out.println("Phase 2: total sublists :" + mergeSortPhaseTwo.no_of_subLists);
             System.out.println("--------------Point 3- assignment----------------");
 
             //read output file to count number of records
@@ -184,10 +187,22 @@ public class SublistCreationPhaseOne {
 
             System.out.println(
                     "Total Number of Records in Output File: " + recordCount);
-            System.out.println(
-                    "Total time  Phase 2 : " + (mergeSortPhaseTwo.mergeTime) + "ms(~approx" + ((mergeSortPhaseTwo.mergeTime) / 1000.0) + " sec");
-//        System.out.println("Total time Phase 1 & Phase 2 : "
-//                    + ((mergeSortPhaseTwo.+ spo.sort_time) / 1000.0) + " sec");
+
+            int blockCountOutput = 0;
+            int recordCountOutput = recordCount;
+            if (recordCountOutput % Constants.MAX_TUPLES_IN_BLOCK == 0) {
+                blockCountOutput = recordCountOutput / Constants.MAX_TUPLES_IN_BLOCK;
+            } else {
+                blockCountOutput = (recordCountOutput / Constants.MAX_TUPLES_IN_BLOCK) + 1;
+
+            }
+
+            System.out.println("Total number of Blocks: " + blockCountOutput);
+
+//            System.out.println(
+//                    "Total time  Phase 2 : " + (mergeSortPhaseTwo.mergeTime) + "ms(~approx" + ((mergeSortPhaseTwo.mergeTime) / 1000.0) + " sec");
+            System.out.println("Total time Phase 1 & Phase 2 : "
+                    + ((mergeSortPhaseTwo.readTime + mergeSortPhaseTwo.writeTime + phase1Time) / 1000.0) + " sec");
             System.out.println(
                     "Total Number of I/O : " + (diskIOPhaseOne + diskIOForPhaseTwo));
 

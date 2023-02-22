@@ -10,6 +10,8 @@ import java.util.List;
 
 public class MergeSublistsPhaseTwo {
 
+    protected static long readTime;
+    protected static long writeTime;
     static int iteration = 0;
     static int writeCount = 0;
     static int readCount = 0;
@@ -45,14 +47,19 @@ public class MergeSublistsPhaseTwo {
 
     //add 1 block~40 tuples at a time in main memory.
     public static void addLinesInBlock(List<String> block, BufferedReader br) {
-        long sum = 0;
+//        long sum = 0;
 
+        readCount++;
         for (int t = 0; t < Constants.MAX_TUPLES_IN_BLOCK; t++) {
             try {
+                long tr1 = System.currentTimeMillis();
                 String line = br.readLine();
+                long tr2 = System.currentTimeMillis();
+                readTime += (tr2 - tr1);
                 if (line == null) break;
+
                 block.add(line);
-                sum++;
+//                sum++;
 
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -108,13 +115,32 @@ public class MergeSublistsPhaseTwo {
 
     public static void writeEntireFile(BufferedWriter bw, BufferedReader br) throws IOException {
 //        System.out.println("wriitng final entire");
+        int count = 0;
         String line;
-        while ((line = br.readLine()) != null) {
+        long tr1 = System.currentTimeMillis();
+        line = br.readLine();
+        long tr2 = System.currentTimeMillis();
+        readTime += (tr2 - tr1);
+
+        while ((line) != null) {
+
+
 //            String s = sc.nextLine();
+
+            tr1 = System.currentTimeMillis();
             bw.append(line);
             bw.newLine();
-        }
+            tr2 = System.currentTimeMillis();
+            writeTime += (tr2 - tr1);
+            count++;
 
+            tr1 = System.currentTimeMillis();
+            line = br.readLine();
+            tr2 = System.currentTimeMillis();
+            readTime += (tr2 - tr1);
+        }
+        readCount += Math.ceil(count / Constants.MAX_TUPLES_IN_BLOCK);
+        writeCount += Math.ceil(count / Constants.MAX_TUPLES_IN_BLOCK);
 //        for (String l : list) {
 //
 //            bw.newLine();
@@ -124,52 +150,19 @@ public class MergeSublistsPhaseTwo {
     public static void writeFileOP(BufferedWriter bw, List<String> list) throws IOException {
 
 //        System.out.println("wriitng " + list.size());
+        writeCount++;
         for (String l : list) {
+
+            long tr1 = System.currentTimeMillis();
             bw.append(l);
             bw.newLine();
+            long tr2 = System.currentTimeMillis();
+            writeTime += (tr2 - tr1);
         }
-
-//            if(list.isEmpty() || list.size()<=lineNo)break;
-//            try {
-//
-//            } catch (IOException e) {
-//                throw new RuntimeException(e);
-//            }
-
-
-//        }
 
 
     }
 
-    public static void checkFile(String path) {
-//        System.out.println("READINGGGGGGGGGGG " + path);
-        BufferedReader br = null;
-//        String line = "";
-        long count = 0;
-        try {
-            br = new BufferedReader(new FileReader(path));
-
-            String line;
-            while ((line = br.readLine()) != null) {
-//                System.out.println(line);
-                count++;
-            }
-//            System.out.println("INNN " + count);
-
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        try {
-            br.close();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-    }
 
     //merging the sublists using k-way alogrithm
     public int mergeSublists(List<Path> listOfSubLists, File opDir) {
@@ -217,10 +210,10 @@ public class MergeSublistsPhaseTwo {
             }
             ///////////////////////
 
-            long sum = 0;
-            for (List<String> block : memoryList) {
-                sum += block.size();
-            }
+//            long sum = 0;
+//            for (List<String> block : memoryList) {
+//                sum += block.size();
+//            }
 //            System.out.println("in memory + " + sum);
 
             ///////////////////////
@@ -245,11 +238,6 @@ public class MergeSublistsPhaseTwo {
                 memoryList.clear();
 
 
-//                try {
-//                    writeFileOP(bw, memoryList.get(0));
-//                } catch (IOException e) {
-//                    throw new RuntimeException(e);
-//                }
 //                countSubs++;
             } else {
 //                String currentMergedFile =System.getProperty("user.dir") +System.getProperty("file.separator")+"buffer" +System.getProperty("file.separator")+ iteration + "-sublist-" + countSubs + "_" + (countSubs+1);
@@ -307,8 +295,9 @@ public class MergeSublistsPhaseTwo {
 
 //            System.out.println(countSubs);
 //            System.out.println(memoryList);
-            checkFile(currentMergedFile);
+//            checkFile(currentMergedFile);
             countSubs++;
+            no_of_subLists++;
             curSubList += (Constants.MAIN_MEMORY - 1);
             try {
                 bw.close();
@@ -344,175 +333,6 @@ public class MergeSublistsPhaseTwo {
 
 
     }
-//    public int mergeSortToOneFile(List<Path> listOfSubLists,File buffer) throws IOException {
-//        long itertionStart = System.currentTimeMillis();
-//        System.lineSeparator();
-//        String recordFromFile1 = null;
-//        String recordFromFile2 = null;
-//        File file1 = null;
-//        File file2 = null;
-//        int tuplesCount1 =0;
-//        int tuplesCount2 =0;
-//        int write = 0;
-//
-//
-//        for(int i=0;i<listOfSubLists.size();i=i+2) { //i=0 0,1    i=2 2,3 ...
-//            String currentMergedFile =System.getProperty("user.dir") +System.getProperty("file.separator")+"buffer" +System.getProperty("file.separator")+ iteration + "-sublist-" + i + "_" + (i+1);
-//
-//            file1 = new File(listOfSubLists.get(i).toString()); //sublist1
-//            if((i+1)<listOfSubLists.size())
-//            {
-//                file2 = new File(listOfSubLists.get(i+1).toString()); //sublist2
-//            }
-//            else
-//            {
-//                file2 = null;
-//            }
-//
-//            try {
-//
-//                BufferedReader br1 = new BufferedReader(new FileReader(file1));
-//                BufferedReader br2=null;
-//
-//                if(file2!=null )
-//                {
-//                    br2 = new BufferedReader(new FileReader(file2));
-//                }
-//
-//                BufferedWriter bw = new BufferedWriter(new FileWriter(currentMergedFile));
-//
-//                if(br1!=null && br2!=null)
-//                {
-//                    recordFromFile1 = br1.readLine();
-//                    recordFromFile2 = br2.readLine();
-//                    while (true) {
-//                        if(recordFromFile1==null){ //if no data left in file1 to mergex`
-//                            while(recordFromFile2 != null){
-//                                bw.write(recordFromFile2);
-//                                bw.newLine();
-//                                write++;
-//                                if(write == MAX_TUPLES_IN_BLOCK) {
-//                                    ++writeCount;
-//                                    write = 0;
-//                                }
-//                                recordFromFile2 = br2.readLine();
-//                            }
-//                            break;
-//                        }else if(recordFromFile2==null){ //if no data left in file2 to merge
-//                            while(recordFromFile1!= null){
-//                                bw.write(recordFromFile1);
-//                                bw.newLine();
-//                                write++;
-//                                if(write == MAX_TUPLES_IN_BLOCK) {
-//                                    ++writeCount;
-//                                    write = 0;
-//                                }
-//                                recordFromFile1 = br1.readLine();
-//                            }
-//                            break;
-//                        }
-//                        //if both records are equal
-//                        if (recordFromFile1.equals(recordFromFile2)) {
-//                            bw.write(recordFromFile1); //write first record
-//                            ++total_records; //to print total records
-//                            ++tuplesCount1;
-//                            bw.newLine();
-//                            write++;
-//
-//                            bw.write(recordFromFile2); //write second record
-//                            ++total_records; //to print total records
-//                            ++tuplesCount2;
-//                            bw.newLine();
-//                            write++;
-//
-//
-//                            if(write == MAX_TUPLES_IN_BLOCK) {
-//                                ++writeCount;
-//                                write = 0;
-//                            }
-//
-//                            recordFromFile1 = br1.readLine();
-//                            recordFromFile2 = br2.readLine();
-//                        } else if (recordFromFile1.compareTo(recordFromFile2) < 0)  //if record in file 1 is less than record in file2
-//                        {
-//                            bw.write(recordFromFile1);
-//                            bw.newLine();
-//                            write++;
-//                            if(write == MAX_TUPLES_IN_BLOCK) {
-//                                ++writeCount;
-//                                write = 0;
-//                            }
-//
-//                            ++total_records; //to print total records
-//                            ++tuplesCount1;
-//                            recordFromFile1 = br1.readLine();
-//                        } else if (recordFromFile1.compareTo(recordFromFile2) > 0) //if record in file 1 is greater than record in file2
-//                        {
-//                            bw.write(recordFromFile2);
-//                            bw.newLine();
-//                            write++;
-//                            if(write == MAX_TUPLES_IN_BLOCK) {
-//                                ++writeCount;
-//                                write = 0;
-//                            }
-//
-//                            ++total_records; //to print total records
-//                            ++tuplesCount2;
-//                            recordFromFile2 = br2.readLine();
-//                        }
-//
-//                        if (tuplesCount1 == MAX_TUPLES_IN_BLOCK || tuplesCount2 == MAX_TUPLES_IN_BLOCK) {
-//                            ++readCount;
-//                            tuplesCount1 = 0;
-//                            ++readCount;
-//                            tuplesCount2= 0;
-//                        }
-//                    }
-//                    bw.close();
-//                    br1.close();
-//                    br2.close();
-//                    //delete processed subList
-//                    DeleteFilesInDirectory.deleteFile(buffer.getPath(), file1.getName());
-//                    DeleteFilesInDirectory.deleteFile(buffer.getPath(), file2.getName());
-//                }
-//                else if(br1!=null) {  //if only one subList left at the end
-//                    while ((recordFromFile1 = br1.readLine()) != null) {
-//                        bw.write(recordFromFile1);
-//                        bw.newLine();
-//                        write++;
-//                        if(write == MAX_TUPLES_IN_BLOCK) {
-//                            ++writeCount;
-//                            write = 0;
-//                        }
-//
-//                        ++total_records; //to print total records
-//                        ++tuplesCount1;
-//                    }
-//                    bw.close();
-//                    br1.close();
-//                    //delete processed subList
-//                    DeleteFilesInDirectory.deleteFile(buffer.getPath(), file1.getName());
-//                }
-//
-//
-//            } catch (FileNotFoundException e) {
-//                throw new RuntimeException(e);
-//            } catch (IOException e) {
-//                throw new RuntimeException(e);
-//            }
-//        }
-//
-//        mergeTime  = mergeTime + (System.currentTimeMillis() - itertionStart);
-//        System.out.println(
-//                "Phase 2 merge time per iteration " + iteration + " : " + (System.currentTimeMillis() - itertionStart)
-//                        + "ms" + "(" + "~approx " + (System.currentTimeMillis() - itertionStart) / 1000.0 + "sec)");
-//
-//        if (buffer.listFiles().length > 1) {
-//            iteration++;
-//            return mergeSortToOneFile(getFilesListFromDirectory.getFilesList(buffer.getPath()),buffer);
-//        } else {
-//            return buffer.listFiles().length;
-//        }
-//    }
+
 
 }
